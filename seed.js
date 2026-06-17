@@ -330,46 +330,146 @@ async function seed() {
   let client;
   try {
     client = await pool.connect();
-    console.log("PostgreSQL Connected. Checking tables...");
+    console.log("PostgreSQL Connected. Re-initializing schema for explicit tables...");
     
-    // Ensure table exists
+    // Drop old generic table
+    await client.query(`DROP TABLE IF EXISTS documents CASCADE;`);
+    
+    // Create new explicit tables
     await client.query(`
-      CREATE TABLE IF NOT EXISTS documents (
-        collection TEXT NOT NULL,
-        id TEXT NOT NULL,
-        data JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (collection, id)
+      CREATE TABLE IF NOT EXISTS user_credentials (
+        uid TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        is_google BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS student_profiles (
+        uid TEXT PRIMARY KEY,
+        full_name TEXT,
+        first_name TEXT,
+        last_name TEXT,
+        email TEXT,
+        profile_photo TEXT,
+        picture TEXT,
+        designation TEXT,
+        role TEXT,
+        is_registered BOOLEAN DEFAULT FALSE,
+        cohort TEXT,
+        active_cohort TEXT,
+        registered_at TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS announcements (
+        id TEXT PRIMARY KEY,
+        category TEXT,
+        tag TEXT,
+        title TEXT,
+        description TEXT,
+        date TEXT,
+        is_urgent BOOLEAN DEFAULT FALSE,
+        is_archived BOOLEAN DEFAULT FALSE,
+        action_label TEXT,
+        action_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS projects (
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        description TEXT,
+        tags JSONB DEFAULT '[]'::jsonb,
+        github_url TEXT,
+        live_url TEXT,
+        version TEXT,
+        image TEXT,
+        is_featured BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY,
+        category TEXT,
+        tag TEXT,
+        title TEXT,
+        description TEXT,
+        date TEXT,
+        time TEXT,
+        location TEXT,
+        image TEXT,
+        is_featured BOOLEAN DEFAULT FALSE,
+        register_link TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS achievements (
+        id TEXT PRIMARY KEY,
+        category TEXT,
+        title TEXT,
+        description TEXT,
+        date TEXT,
+        image TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
     
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_documents_collection ON documents(collection);
-    `);
+    console.log("Tables created successfully. Seeding data...");
     
-    console.log("Documents table active. Seeding data...");
-    
-    const collectionsToSeed = [
-      { name: 'announcements', items: announcements },
-      { name: 'projects', items: projects },
-      { name: 'events', items: events },
-      { name: 'achievements', items: achievements },
-      { name: 'student_profiles', items: studentProfiles }
-    ];
-    
-    for (const col of collectionsToSeed) {
-      console.log(`Seeding ${col.items.length} documents into '${col.name}' collection...`);
-      for (const item of col.items) {
-        const id = item.id || item.uid;
-        await client.query(
-          `INSERT INTO documents (collection, id, data) 
-           VALUES ($1, $2, $3) 
-           ON CONFLICT (collection, id) 
-           DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP`,
-          [col.name, id, item]
-        );
-      }
+    // Seed Announcements
+    console.log(`Seeding ${announcements.length} records into 'announcements'...`);
+    for (const item of announcements) {
+      await client.query(
+        `INSERT INTO announcements (id, category, tag, title, description, date, is_urgent, is_archived, action_label, action_url) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.category, item.tag, item.title, item.description, item.date, item.isUrgent || false, item.isArchived || false, item.actionLabel, item.actionUrl]
+      );
+    }
+
+    // Seed Projects
+    console.log(`Seeding ${projects.length} records into 'projects'...`);
+    for (const item of projects) {
+      await client.query(
+        `INSERT INTO projects (id, title, description, tags, github_url, live_url, version, image, is_featured) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.title, item.description, JSON.stringify(item.tags || []), item.githubUrl, item.liveUrl, item.version, item.image, item.isFeatured || false]
+      );
+    }
+
+    // Seed Events
+    console.log(`Seeding ${events.length} records into 'events'...`);
+    for (const item of events) {
+      await client.query(
+        `INSERT INTO events (id, category, tag, title, description, date, time, location, image, is_featured, register_link) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.category, item.tag, item.title, item.description, item.date, item.time, item.location, item.image, item.isFeatured || false, item.registerLink]
+      );
+    }
+
+    // Seed Achievements
+    console.log(`Seeding ${achievements.length} records into 'achievements'...`);
+    for (const item of achievements) {
+      await client.query(
+        `INSERT INTO achievements (id, category, title, description, date, image) 
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.category, item.title, item.description, item.date, item.image]
+      );
+    }
+
+    // Seed Student Profiles
+    console.log(`Seeding ${studentProfiles.length} records into 'student_profiles'...`);
+    for (const item of studentProfiles) {
+      await client.query(
+        `INSERT INTO student_profiles (uid, full_name, first_name, last_name, email, profile_photo, picture, designation, role, is_registered, cohort, active_cohort, registered_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (uid) DO NOTHING`,
+        [item.uid, item.fullName, item.firstName, item.lastName, item.email, item.profilePhoto, item.picture, item.designation, item.role, item.isRegistered || false, item.cohort, item.activeCohort, item.registeredAt]
+      );
     }
     
     console.log("\nDATABASE SEEDING COMPLETED SUCCESSFULLY!");
