@@ -1,0 +1,191 @@
+{
+  "entities": {
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Unified student profile registry record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Authenticating unique user ID" },
+        "fullName": { "type": "string", "description": "Full display name of student" },
+        "firstName": { "type": "string", "description": "First name of member" },
+        "lastName": { "type": "string", "description": "Last name of member" },
+        "email": { "type": "string", "format": "email", "description": "University or admin email" },
+        "profilePhoto": { "type": "string", "description": "Profile picture URL" },
+        "picture": { "type": "string", "description": "Profile picture base64 or URL" },
+        "designation": { "type": "string", "description": "Club designation/role" },
+        "role": { "type": "string", "description": "Club designation/role" },
+        "points": { "type": "number", "description": "Club interaction/activity points" },
+        "isRegistered": { "type": "boolean", "description": "Registration status" },
+        "createdAt": { "type": "string", "description": "Registration ISO timeline date" },
+        "registeredAt": { "type": "string", "description": "Inauguration date" },
+        "cohort": { "type": "string", "description": "Current active cohort tag" },
+        "activeCohort": { "type": "string", "description": "Current active cohort tag" }
+      },
+      "required": ["uid", "fullName", "email"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "A registered club member",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string", "description": "First name of member" },
+        "lastName": { "type": "string", "description": "Last name of member" },
+        "email": { "type": "string", "format": "email", "description": "University or admin email" },
+        "role": { "type": "string", "description": "Club designation/role" },
+        "points": { "type": "number", "description": "Club interaction/activity points" },
+        "picture": { "type": "string", "description": "Profile picture base64 or URL" },
+        "isRegistered": { "type": "boolean", "description": "Registration status" },
+        "registeredAt": { "type": "string", "description": "Inauguration date" },
+        "activeCohort": { "type": "string", "description": "Current active cohort tag" }
+      },
+      "required": ["firstName", "email"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Student web/app project showcase",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Document unique ID" },
+        "title": { "type": "string", "description": "Project title" },
+        "description": { "type": "string", "description": "Project description" },
+        "category": { "type": "string", "description": "Web Dev, AI / ML, IoT, etc." },
+        "githubUrl": { "type": "string", "description": "Source code repository URL" },
+        "liveUrl": { "type": "string", "description": "Live preview URL if available" },
+        "tags": { "type": "array", "description": "Tech stack tags" },
+        "version": { "type": "string", "description": "Release version tag" },
+        "image": { "type": "string", "description": "Project cover image" },
+        "isFeatured": { "type": "boolean", "description": "Featured status" }
+      },
+      "required": ["title", "description", "githubUrl"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Active schedules for seminars or workshops",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Event unique ID" },
+        "title": { "type": "string", "description": "Event heading" },
+        "description": { "type": "string", "description": "Brief workshop detail" },
+        "category": { "type": "string", "description": "Category categorization" },
+        "tag": { "type": "string", "description": "Special technical tag" },
+        "date": { "type": "string", "description": "Calendar date string" },
+        "time": { "type": "string", "description": "Daily calendar clock range" },
+        "location": { "type": "string", "description": "Specific hall or digital address" },
+        "image": { "type": "string", "description": "Scenic illustration" },
+        "isFeatured": { "type": "boolean", "description": "Highlight focus listing" }
+      },
+      "required": ["title", "date", "time"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Notices and alerts board for Department of CSE",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Announcement unique ID" },
+        "category": { "type": "string", "description": "General, Events, Recruitment" },
+        "tag": { "type": "string", "description": "Short category badge label" },
+        "title": { "type": "string", "description": "Announcement title heading" },
+        "description": { "type": "string", "description": "Full details copy" },
+        "date": { "type": "string", "description": "Relative posting date" },
+        "isUrgent": { "type": "boolean", "description": "Critical focus notice flag" },
+        "actionLabel": { "type": "string", "description": "Call to action text" }
+      },
+      "required": ["title", "description"]
+    },
+    "Rsvp": {
+      "title": "Rsvp",
+      "description": "Student workshop rsvps",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "RSVP unique log code" },
+        "eventId": { "type": "string", "description": "Event key reference map" },
+        "eventTitle": { "type": "string", "description": "Event title helper duplicate" },
+        "fullName": { "type": "string", "description": "Student full register name" },
+        "studentId": { "type": "string", "description": "University Student Roll / ID" },
+        "email": { "type": "string", "description": "Contact correspondence university email" },
+        "createdAt": { "type": "string", "description": "Log timestamp sequence string" }
+      },
+      "required": ["id", "eventId", "fullName", "email"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Inbound user contact inquiries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique inquiry log ID" },
+        "name": { "type": "string", "description": "Sender full name" },
+        "email": { "type": "string", "description": "Sender correspondence email" },
+        "subject": { "type": "string", "description": "Message topic or brief description" },
+        "message": { "type": "string", "description": "Detailed multi-line descriptions" },
+        "chapter": { "type": "string", "description": "Gopalganj campus chapter identification" },
+        "createdAt": { "type": "string", "description": "Submission ISO date format" },
+        "isRead": { "type": "boolean", "description": "Seen marker status" }
+      },
+      "required": ["id", "name", "email", "message"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrative accounts mapping UIDs to roles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Authentication ID key mapping" },
+        "email": { "type": "string", "description": "Admin level university email" },
+        "lastLogin": { "type": "string", "description": "System trace index timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "Club achievements and memorable photo moments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Document unique ID" },
+        "title": { "type": "string", "description": "Achievement title heading" },
+        "description": { "type": "string", "description": "Detailed description story" },
+        "category": { "type": "string", "description": "Achievement or Photo Moment" },
+        "date": { "type": "string", "description": "Calendar date or occurrence timestamp" },
+        "image": { "type": "string", "description": "Base64 image or photo URL" },
+        "createdAt": { "type": "string", "description": "Timestamp when logged" }
+      },
+      "required": ["id", "title", "description", "category", "date"]
+    }
+  },
+  "firestore": {
+    "/student_profiles/{profileId}": {
+      "schema": "StudentProfile",
+      "description": "Unified registers of club student profiles"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Registered administrator accounts trace"
+    },
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Database registers of club members"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Database registers of student project submissions"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Database registers of upcoming events and workshops"
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Database registers of department notices"
+    },
+    "/rsvps/{rsvpId}": {
+      "schema": "Rsvp",
+      "description": "Database registers of students event RSVP logs"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Database registers of inbound contact messages"
+    },
+    "/achievements/{achievementId}": {
+      "schema": "Achievement",
+      "description": "Database registers of club achievements and photo moments"
+    }
+  }
+}

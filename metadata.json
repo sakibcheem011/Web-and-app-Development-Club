@@ -1,0 +1,6 @@
+{
+  "name": "Web and App Development Club GSTU",
+  "description": "Student-led development club for learning, project building, and tech innovation at Gopalganj Science and Technology University (BSMRSTU).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

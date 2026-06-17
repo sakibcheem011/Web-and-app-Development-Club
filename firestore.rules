@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Catch-All Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Global Helper Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'cheemsakib@gmail.com' ||
+        request.auth.token.email == 'shakib@gstu.edu.bd' ||
+        request.auth.token.email == 'admin@gstu.edu.bd'
+      );
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_@.-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    // Member Validation Helpers
+    function isValidMember(m) {
+      return m.firstName is string && m.firstName.size() <= 128
+          && m.email is string && m.email.size() <= 128
+          && m.get('lastName', '') is string && m.get('lastName', '').size() <= 128
+          && m.get('role', '') is string && m.get('role', '').size() <= 128
+          && m.get('picture', '') is string && m.get('picture', '').size() <= 8000000
+          && m.get('points', 0) is number
+          && m.get('isRegistered', false) is bool
+          && m.get('registeredAt', '') is string && m.get('registeredAt', '').size() <= 128
+          && m.get('activeCohort', '') is string && m.get('activeCohort', '').size() <= 128;
+    }
+
+    // Student Profile Validation Helpers
+    function isValidStudentProfile(p) {
+      return p.uid is string && p.uid.size() <= 128
+          && p.fullName is string && p.fullName.size() <= 256
+          && p.email is string && p.email.size() <= 128;
+    }
+    
+    // Project Validation Helpers
+    function isValidProject(p) {
+      return p.title is string && p.title.size() <= 256
+          && p.description is string && p.description.size() <= 4096
+          && p.githubUrl is string && p.githubUrl.size() <= 1024
+          && p.get('liveUrl', '') is string && p.get('liveUrl', '').size() <= 1024
+          && p.get('category', '') is string && p.get('category', '').size() <= 128
+          && p.get('version', '') is string && p.get('version', '').size() <= 64
+          && p.get('image', '') is string && p.get('image', '').size() <= 8000000
+          && p.get('isFeatured', false) is bool;
+    }
+    
+    // Event Validation Helpers
+    function isValidEvent(ev) {
+      return ev.title is string && ev.title.size() <= 256
+          && ev.description is string && ev.description.size() <= 4096
+          && ev.category is string && ev.category.size() <= 128
+          && ev.tag is string && ev.tag.size() <= 128
+          && ev.date is string && ev.date.size() <= 128
+          && ev.time is string && ev.time.size() <= 128
+          && ev.location is string && ev.location.size() <= 256
+          && ev.get('image', '') is string && ev.get('image', '').size() <= 8000000
+          && ev.get('isFeatured', false) is bool;
+    }
+    
+    // Announcement Validation Helpers
+    function isValidAnnouncement(ann) {
+      return ann.title is string && ann.title.size() <= 256
+          && ann.description is string && ann.description.size() <= 4096
+          && ann.category is string && ann.category.size() <= 128
+          && ann.tag is string && ann.tag.size() <= 128
+          && ann.date is string && ann.date.size() <= 128
+          && ann.get('isUrgent', false) is bool
+          && ann.get('actionLabel', '') is string && ann.get('actionLabel', '').size() <= 128;
+    }
+    
+    // RSVP Validation Helpers
+    function isValidRsvp(rsvp) {
+      return rsvp.id is string && rsvp.id.size() <= 128
+          && rsvp.eventId is string && rsvp.eventId.size() <= 128
+          && rsvp.eventTitle is string && rsvp.eventTitle.size() <= 256
+          && rsvp.fullName is string && rsvp.fullName.size() <= 256
+          && rsvp.studentId is string && rsvp.studentId.size() <= 128
+          && rsvp.email is string && rsvp.email.size() <= 256
+          && rsvp.createdAt is string && rsvp.createdAt.size() <= 128;
+    }
+
+    // Inquiry Validation Helpers
+    function isValidInquiry(inq) {
+      return inq.id is string && inq.id.size() <= 128
+          && inq.name is string && inq.name.size() <= 256
+          && inq.email is string && inq.email.size() <= 256
+          && inq.subject is string && inq.subject.size() <= 256
+          && inq.message is string && inq.message.size() <= 8192
+          && inq.chapter is string && inq.chapter.size() <= 64
+          && inq.createdAt is string && inq.createdAt.size() <= 128
+          && inq.get('isRead', false) is bool;
+    }
+
+    // Achievement Validation Helpers
+    function isValidAchievement(a) {
+      return a.id is string && a.id.size() <= 128
+          && a.title is string && a.title.size() <= 256
+          && a.description is string && a.description.size() <= 8192
+          && a.category is string && a.category.size() <= 128
+          && a.date is string && a.date.size() <= 128
+          && a.get('image', '') is string && a.get('image', '').size() <= 8000000
+          && a.get('createdAt', '') is string && a.get('createdAt', '').size() <= 128;
+    }
+
+    // Collection Security Assignments
+    match /admins/{adminId} {
+      allow read, write: if true;
+    }
+
+    match /members/{memberId} {
+      allow read, write: if true;
+    }
+
+    match /student_profiles/{profileId} {
+      allow read, write: if true;
+    }
+    
+    match /projects/{projectId} {
+      allow read, write: if true;
+    }
+
+    match /events/{eventId} {
+      allow read, write: if true;
+    }
+
+    match /announcements/{announcementId} {
+      allow read, write: if true;
+    }
+
+    match /rsvps/{rsvpId} {
+      allow read, write: if true;
+    }
+
+    match /inquiries/{inquiryId} {
+      allow read, write: if true;
+    }
+
+    match /achievements/{achievementId} {
+      allow read, write: if true;
+    }
+  }
+}
