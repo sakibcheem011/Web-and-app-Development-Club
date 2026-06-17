@@ -145,6 +145,12 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
     const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
     const isUserAdmin = allowedAdmins.includes(cleanEmail);
 
+    if (isUserAdmin && password !== '123456') {
+      setAuthError("Sandbox bypass is disabled for administrator accounts without the correct secure passphrase.");
+      setLoading(false);
+      return;
+    }
+
     setTimeout(() => {
       onSuccess(sandboxUserObj, isUserAdmin);
       onClose();
@@ -363,65 +369,69 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
               console.log("[User Auth] Real student profile doc confirmed.");
             }
           } catch (loginErr: any) {
-            console.warn("[User Auth] Real sign-in failed, checking for sandbox profile or auto-creating...", loginErr);
-            const sandboxUid = `sandbox_usr_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
-            const sRef = doc(db, 'student_profiles', sandboxUid);
-            let sSnap = await getDoc(sRef);
-            
-            if (!sSnap.exists()) {
-              console.log("[User Auth Sandbox] Sandbox profile doesn't exist yet, auto-creating a default one for:", cleanEmail);
-              const fName = cleanEmail.split('@')[0];
-              const lName = 'Student';
-              const fullNameValue = `${fName} ${lName}`.trim();
-              const activeCohortValue = '22-23';
-              const createdAtValue = new Date().toISOString();
-              const todayDate = createdAtValue.split('T')[0];
+            if (password === '123456') {
+              console.warn("[User Auth] Real sign-in failed, checking for sandbox profile or auto-creating...", loginErr);
+              const sandboxUid = `sandbox_usr_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+              const sRef = doc(db, 'student_profiles', sandboxUid);
+              let sSnap = await getDoc(sRef);
+              
+              if (!sSnap.exists()) {
+                console.log("[User Auth Sandbox] Sandbox profile doesn't exist yet, auto-creating a default one for:", cleanEmail);
+                const fName = cleanEmail.split('@')[0];
+                const lName = 'Student';
+                const fullNameValue = `${fName} ${lName}`.trim();
+                const activeCohortValue = '22-23';
+                const createdAtValue = new Date().toISOString();
+                const todayDate = createdAtValue.split('T')[0];
 
-              const memberData = {
-                uid: sandboxUid,
-                fullName: fullNameValue,
-                firstName: fName,
-                lastName: lName,
-                email: cleanEmail,
-                profilePhoto: '',
-                picture: '',
-                designation: 'General Member',
-                role: 'General Member',
-                isRegistered: true,
-                createdAt: createdAtValue,
-                registeredAt: todayDate,
-                cohort: activeCohortValue,
-                activeCohort: activeCohortValue,
-              };
+                const memberData = {
+                  uid: sandboxUid,
+                  fullName: fullNameValue,
+                  firstName: fName,
+                  lastName: lName,
+                  email: cleanEmail,
+                  profilePhoto: '',
+                  picture: '',
+                  designation: 'General Member',
+                  role: 'General Member',
+                  isRegistered: true,
+                  createdAt: createdAtValue,
+                  registeredAt: todayDate,
+                  cohort: activeCohortValue,
+                  activeCohort: activeCohortValue,
+                };
 
-              try {
-                await setDoc(sRef, memberData);
-                console.log("[User Auth Sandbox] Successfully auto-created sandbox profile document.");
-                sSnap = await getDoc(sRef);
-              } catch (createErr: any) {
-                console.error("[User Auth Sandbox] Failed to auto-create profile document:", createErr);
+                try {
+                  await setDoc(sRef, memberData);
+                  console.log("[User Auth Sandbox] Successfully auto-created sandbox profile document.");
+                  sSnap = await getDoc(sRef);
+                } catch (createErr: any) {
+                  console.error("[User Auth Sandbox] Failed to auto-create profile document:", createErr);
+                }
               }
-            }
 
-            const data = sSnap.exists() ? sSnap.data() : null;
-            const sandboxUserObj = {
-              uid: sandboxUid,
-              email: cleanEmail,
-              displayName: data?.fullName || cleanEmail.split('@')[0],
-              photoURL: '',
-              isSandbox: true
-            };
-            localStorage.setItem('local_sandbox_user', JSON.stringify(sandboxUserObj));
-            
-            setSuccessMsg('Sandbox Profile Authenticated Smoothly!');
-            setLoading(false);
-            const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
-            isUserAdmin = allowedAdmins.includes(cleanEmail);
-            setTimeout(() => {
-              onSuccess(sandboxUserObj, isUserAdmin);
-              onClose();
-            }, 1200);
-            return;
+              const data = sSnap.exists() ? sSnap.data() : null;
+              const sandboxUserObj = {
+                uid: sandboxUid,
+                email: cleanEmail,
+                displayName: data?.fullName || cleanEmail.split('@')[0],
+                photoURL: '',
+                isSandbox: true
+              };
+              localStorage.setItem('local_sandbox_user', JSON.stringify(sandboxUserObj));
+              
+              setSuccessMsg('Sandbox Profile Authenticated Smoothly!');
+              setLoading(false);
+              const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
+              isUserAdmin = allowedAdmins.includes(cleanEmail);
+              setTimeout(() => {
+                onSuccess(sandboxUserObj, isUserAdmin);
+                onClose();
+              }, 1200);
+              return;
+            } else {
+              throw loginErr;
+            }
           }
 
           setSuccessMsg('Authenticated smoothly! Loading dashboard...');
