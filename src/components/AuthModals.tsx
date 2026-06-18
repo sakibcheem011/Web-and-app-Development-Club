@@ -559,32 +559,9 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
       {/* Immersive radial background glows */}
       <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 via-slate-950/40 to-black pointer-events-none" />
       
-      {/* Dynamic Ambient Blur Fields */}
-      <motion.div 
-        className="absolute top-10 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-[800px] h-[300px] rounded-full bg-purple-600/10 blur-[80px] pointer-events-none"
-        animate={{ 
-          opacity: [0.15, 0.35, 0.15],
-          scale: [0.95, 1.05, 0.95]
-        }}
-        transition={{ 
-          duration: 6, 
-          repeat: Infinity,
-          repeatType: "mirror"
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-[800px] h-[300px] rounded-full bg-emerald-600/10 blur-[80px] pointer-events-none"
-        animate={{ 
-          opacity: [0.1, 0.25, 0.1],
-          scale: [1, 1.1, 1]
-        }}
-        transition={{ 
-          duration: 7, 
-          repeat: Infinity,
-          repeatType: "mirror",
-          delay: 1
-        }}
-      />
+      {/* Static Ambient Blur Fields (Optimized for performance) */}
+      <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-[800px] h-[300px] rounded-full bg-purple-600/10 blur-[80px] pointer-events-none opacity-25" />
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-[800px] h-[300px] rounded-full bg-emerald-600/10 blur-[80px] pointer-events-none opacity-20" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.93, y: 15 }}
@@ -600,32 +577,12 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Traveling glow-beam along the card borders */}
+          {/* Static border glow (Optimized) */}
           <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-            {/* Top edge beam */}
-            <motion.div 
-              className="absolute top-0 left-0 h-[2px] w-[50%] bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-80"
-              animate={{ left: ["-50%", "100%"] }}
-              transition={{ duration: 3, ease: "linear", repeat: Infinity }}
-            />
-            {/* Right edge beam */}
-            <motion.div 
-              className="absolute top-0 right-0 h-[50%] w-[2px] bg-gradient-to-b from-transparent via-emerald-400 to-transparent opacity-80"
-              animate={{ top: ["-50%", "100%"] }}
-              transition={{ duration: 3, ease: "linear", repeat: Infinity, delay: 0.75 }}
-            />
-            {/* Bottom edge beam */}
-            <motion.div 
-              className="absolute bottom-0 right-0 h-[2px] w-[50%] bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-80"
-              animate={{ right: ["-50%", "100%"] }}
-              transition={{ duration: 3, ease: "linear", repeat: Infinity, delay: 1.5 }}
-            />
-            {/* Left edge beam */}
-            <motion.div 
-              className="absolute bottom-0 left-0 h-[50%] w-[2px] bg-gradient-to-b from-transparent via-emerald-400 to-transparent opacity-80"
-              animate={{ bottom: ["-50%", "100%"] }}
-              transition={{ duration: 3, ease: "linear", repeat: Infinity, delay: 2.25 }}
-            />
+            <div className="absolute top-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+            <div className="absolute top-0 left-0 h-full w-[1px] bg-gradient-to-b from-transparent via-purple-500/20 to-transparent" />
+            <div className="absolute top-0 right-0 h-full w-[1px] bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent" />
           </div>
 
           {/* Core Interactive Card Layout */}
