@@ -34,6 +34,8 @@ export const AuroraBackground = ({
           after:content-[""] after:absolute after:inset-0 after:[background-image:var(--aurora)] 
           after:[background-size:150%,_100%] 
           after:animate-aurora
+          after:origin-center
+          after:scale-150
           pointer-events-none
           absolute inset-0 opacity-20 dark:opacity-15 will-change-transform transform-gpu`,
 
