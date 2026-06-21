@@ -8,15 +8,15 @@ import { onAuthStateChanged, signOut, User, getRedirectResult } from 'firebase/a
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Page Views
-import HomeView from './components/HomeView';
-import AboutView from './components/AboutView';
-import EventsView from './components/EventsView';
-import ProjectsView from './components/ProjectsView';
-import AchievementsView from './components/AchievementsView';
-import AnnouncementsView from './components/AnnouncementsView';
-import ContactView from './components/ContactView';
-import MemberPortalView from './components/MemberPortalView';
-import AdminDashboardView from './components/AdminDashboardView';
+const HomeView = React.lazy(() => import('./components/HomeView'));
+const AboutView = React.lazy(() => import('./components/AboutView'));
+const EventsView = React.lazy(() => import('./components/EventsView'));
+const ProjectsView = React.lazy(() => import('./components/ProjectsView'));
+const AchievementsView = React.lazy(() => import('./components/AchievementsView'));
+const AnnouncementsView = React.lazy(() => import('./components/AnnouncementsView'));
+const ContactView = React.lazy(() => import('./components/ContactView'));
+const MemberPortalView = React.lazy(() => import('./components/MemberPortalView'));
+const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardView'));
 import AnimatedGradient from './components/ui/animated-gradient';
 import InstallPromptModal from './components/InstallPromptModal';
 import { usePWA } from './hooks/usePWA';
@@ -328,7 +328,13 @@ export default function App() {
             id={`view-stage-${currentView}`}
             className="w-full"
           >
-            {renderActiveView()}
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            }>
+              {renderActiveView()}
+            </React.Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
