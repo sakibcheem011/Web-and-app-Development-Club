@@ -528,7 +528,8 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
         }
       } else if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
         const currentDomain = window.location.host;
-        setAuthError(`Unauthorized Domain Warning: "${currentDomain}" is not authorized under your Firebase Console -> Authentication -> Settings -> Authorized Domains. Please authorize this hostname, or click below to use the Mock Google SSO option.`);
+        setAuthError(`Unauthorized Domain Warning: "${currentDomain}" is not authorized under your Firebase Console. Please authorize it or use this Mock Google Login fallback.`);
+        setShowMockGoogleInput(true);
       } else {
         setAuthError(err.message || 'OAuth interaction failed. If this is a sandbox/local environment, try using Mock Google Login instead.');
       }
