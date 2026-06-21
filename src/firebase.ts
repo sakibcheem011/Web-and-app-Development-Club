@@ -6,7 +6,19 @@ import { getAuth as realGetAuth, signInWithPopup as realSignInWithPopup, GoogleA
 console.log("[Firebase Init] Initializing platform mock services...");
 
 export const app = {};
-const realApp = realInitializeApp(firebaseConfig);
+
+// Allow dynamic configuration from environment variables (e.g. for custom domain deployments on Render)
+const resolvedConfig = {
+  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || firebaseConfig.apiKey,
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || firebaseConfig.authDomain,
+  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || firebaseConfig.projectId,
+  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || firebaseConfig.storageBucket,
+  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || firebaseConfig.messagingSenderId,
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || firebaseConfig.appId,
+  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || (firebaseConfig as any).measurementId || ""
+};
+
+const realApp = realInitializeApp(resolvedConfig);
 const realFirebaseAuth = realGetAuth(realApp);
 
 // Enum and Error structures matching the original
@@ -157,29 +169,11 @@ export async function signInWithPopup(authInstance: any, provider: any) {
     auth.currentUser = user as any;
     if (authListener) authListener(user);
     return { user };
-  } catch (error) {
-    console.error("Real Google Sign-In failed, falling back to mock input:", error);
-    const email = prompt("Enter your Google Account Email:", "google.user@gstu.edu.bd");
-    if (!email) throw new Error("Google Sign-In cancelled");
-    const name = email.split('@')[0];
-    const user = {
-      uid: `google_usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
-      email: email.toLowerCase(),
-      displayName: name.charAt(0).toUpperCase() + name.slice(1) + " (Google)",
-      photoURL: "",
-      isGoogle: true
-    };
-    
-    await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user.email, uid: user.uid, displayName: user.displayName })
-    });
-    
-    localStorage.setItem('local_user', JSON.stringify(user));
-    auth.currentUser = user as any;
-    if (authListener) authListener(user);
-    return { user };
+  } catch (error: any) {
+    console.error("Real Google Sign-In failed:", error);
+    const mockTriggerError = new Error("Real Google Sign-In is unavailable on this host. Use mock sign-in.");
+    (mockTriggerError as any).code = 'auth/mock-auth-trigger';
+    throw mockTriggerError;
   }
 }
 

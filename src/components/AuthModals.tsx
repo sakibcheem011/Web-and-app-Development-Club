@@ -37,6 +37,8 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
   const [authError, setAuthError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
+  const [showMockGoogleInput, setShowMockGoogleInput] = React.useState(false);
+  const [mockGoogleEmail, setMockGoogleEmail] = React.useState('google.user@gstu.edu.bd');
 
   const isLocalhost = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || 
@@ -65,7 +67,8 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
     }
     setAuthError(null);
     setSuccessMsg(null);
-  }, [mode]);
+    setShowMockGoogleInput(false);
+  }, [mode, isOpen]);
 
   // For 3D card rotatability
   const mouseX = useMotionValue(0);
@@ -544,12 +547,93 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
           console.error("[Google Auth Redirect Fallback Error]", redirectErr);
           setAuthError(`Sign-in was blocked. Chrome or Safari may have blocked cookie access on localhost. Use the 'Sign-in with Google (Localhost Redirect Fallback)' button under the SSO options instead!`);
         }
+      } else if (err.code === 'auth/mock-auth-trigger') {
+        setShowMockGoogleInput(true);
+        setLoading(false);
+        return;
       } else if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
         const currentDomain = window.location.host;
         setAuthError(`Unauthorized Domain Warning: "${currentDomain}" is not authorized under your Firebase Console -> Authentication -> Settings -> Authorized Domains. Please authorize this hostname or use our Sandbox bypass above!`);
       } else {
         setAuthError(err.message || 'OAuth interaction failed. Try using the secure Redirect Fallback.');
       }
+      setLoading(false);
+    }
+  };
+
+  const handleMockGoogleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mockGoogleEmail) {
+      setAuthError('Please enter a mock Google email.');
+      return;
+    }
+    setLoading(true);
+    setAuthError(null);
+    try {
+      const cleanEmail = mockGoogleEmail.trim().toLowerCase();
+      const name = cleanEmail.split('@')[0];
+      const user = {
+        uid: `google_usr_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        email: cleanEmail,
+        displayName: name.charAt(0).toUpperCase() + name.slice(1) + " (Google)",
+        photoURL: "",
+        isGoogle: true
+      };
+      
+      await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, uid: user.uid, displayName: user.displayName })
+      });
+      
+      const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
+      const isUserAdmin = allowedAdmins.includes(cleanEmail);
+
+      const profilePath = `student_profiles/${user.uid}`;
+      const profileRef = doc(db, 'student_profiles', user.uid);
+      const docSnap = await getDoc(profileRef);
+      
+      if (!docSnap.exists()) {
+        const spaceIndex = user.displayName?.indexOf(' ') ?? -1;
+        const fName = spaceIndex !== -1 ? user.displayName?.substring(0, spaceIndex) : (user.displayName || 'OAuth');
+        const lName = spaceIndex !== -1 ? user.displayName?.substring(spaceIndex + 1) : 'Member';
+        const fullNameValue = user.displayName || `${fName} ${lName}`.trim();
+        const activeCohortValue = selectedCohort || '22-23';
+        const createdAtValue = new Date().toISOString();
+        const todayDate = createdAtValue.split('T')[0];
+
+        const payload = {
+          uid: user.uid,
+          fullName: fullNameValue,
+          firstName: fName,
+          lastName: lName,
+          email: cleanEmail,
+          profilePhoto: user.photoURL || '',
+          picture: user.photoURL || '',
+          designation: isUserAdmin ? 'General Secretary' : 'General Member',
+          role: isUserAdmin ? 'General Secretary' : 'General Member',
+          isRegistered: true,
+          createdAt: createdAtValue,
+          registeredAt: todayDate,
+          cohort: activeCohortValue,
+          activeCohort: activeCohortValue,
+        };
+
+        await setDoc(profileRef, payload);
+      }
+      
+      localStorage.setItem('local_user', JSON.stringify(user));
+      auth.currentUser = user as any;
+      if (authListener) authListener(user);
+      
+      setSuccessMsg('Successfully signed in with Google');
+      setLoading(false);
+      setTimeout(() => {
+        onSuccess(user, isUserAdmin);
+        onClose();
+      }, 1000);
+    } catch (err: any) {
+      setAuthError(err.message || 'Mock Google login failed.');
       setLoading(false);
     }
   };
@@ -616,6 +700,74 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
                 <p className="text-xs text-slate-400 font-mono tracking-wider animate-pulse">
                   Establishing secure dynamic session...
                 </p>
+              </div>
+            ) : showMockGoogleInput ? (
+              <div className="space-y-6">
+                {/* Brand / Logo Segment */}
+                <div className="text-center space-y-1">
+                  <div className="mx-auto w-12 h-12 rounded-full border border-white/10 flex items-center justify-center relative overflow-hidden bg-white/5 shadow-inner">
+                    <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-br from-white via-purple-200 to-emerald-200">
+                      G
+                    </span>
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-purple-500/10 to-transparent" />
+                  </div>
+
+                  <h1 className="text-xl font-extrabold text-white tracking-tight font-display pt-2">
+                    Google SSO Mock Login
+                  </h1>
+                  
+                  <p className="text-slate-400 text-xs px-4">
+                    Real Google SSO is restricted on this host domain. Sign in instantly using a Mock Google Account below.
+                  </p>
+                </div>
+
+                <form onSubmit={handleMockGoogleSubmit} className="space-y-4">
+                  {authError && (
+                    <div className="p-3 text-xs font-normal rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 space-y-1 flex items-start space-x-1.5 font-semibold">
+                      <span className="text-sm">⚠️</span>
+                      <span>{authError}</span>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1 font-mono">
+                      Mock Google Email
+                    </label>
+                    <div className="relative flex items-center">
+                      <Mail className="absolute left-3 w-4 h-4 text-slate-500" />
+                      <input
+                        type="email"
+                        required
+                        value={mockGoogleEmail}
+                        onChange={(e) => setMockGoogleEmail(e.target.value)}
+                        placeholder="google.user@gstu.edu.bd"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 transition-all font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-extrabold py-3.5 px-4 rounded-xl text-sm transition-all shadow duration-200 active:scale-98 cursor-pointer disabled:opacity-50"
+                  >
+                    <span>{loading ? 'Authorizing Mock Session...' : 'AUTHORIZE GOOGLE SESSION'}</span>
+                    {!loading && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </form>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMockGoogleInput(false);
+                      setAuthError(null);
+                    }}
+                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors duration-200 underline decoration-slate-600 hover:decoration-white underline-offset-4"
+                  >
+                    Return to standard credentials portal
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-6">
