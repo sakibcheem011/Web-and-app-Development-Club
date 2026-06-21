@@ -631,8 +631,8 @@ export default function AdminDashboardView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2000000) {
-      setToast({ type: 'error', message: 'Image size is too large. Please select a file under 2MB.' });
+    if (file.size > 10000000) {
+      setToast({ type: 'error', message: 'Image size is too large. Please select a file under 10MB.' });
       return;
     }
 
@@ -896,8 +896,8 @@ export default function AdminDashboardView() {
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1500000) {
-        setToast({ type: 'error', message: 'Image size is too large. Please select a file under 1.5MB.' });
+      if (file.size > 10000000) {
+        setToast({ type: 'error', message: 'Image size is too large. Please select a file under 10MB.' });
         return;
       }
       const reader = new FileReader();
@@ -1869,7 +1869,7 @@ export default function AdminDashboardView() {
                           {/* Select Dropdown & Confirm Action */}
                           <div className="flex items-center space-x-2">
                             <select
-                              id={`select-executive-${role}`}
+                              id={`select-executive-${role.replace(/[^a-zA-Z0-9]/g, '-')}`}
                               defaultValue={currentHolder ? currentHolder.email : ''}
                               className="flex-1 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 text-slate-850 dark:text-slate-100 text-xs px-3 py-2 rounded-xl font-medium focus:outline-none focus:border-emerald-500 cursor-pointer"
                             >
@@ -1882,7 +1882,7 @@ export default function AdminDashboardView() {
                             </select>
                             <button
                               onClick={() => {
-                                const selectEl = document.getElementById(`select-executive-${role}`) as HTMLSelectElement;
+                                const selectEl = document.getElementById(`select-executive-${role.replace(/[^a-zA-Z0-9]/g, '-')}`) as HTMLSelectElement;
                                 if (selectEl) {
                                   handleAssignCommittee('GSTU', role, selectEl.value);
                                 }
