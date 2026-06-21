@@ -26,6 +26,50 @@ export default function Navbar({
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+  const getUserDisplayName = () => {
+    if (!currentUser) return '';
+    const email = currentUser.email || '';
+    const isGmailOrGoogle = email.toLowerCase().endsWith('@gmail.com') || 
+                            currentUser.providerData?.some((p: any) => p.providerId === 'google.com') ||
+                            currentUser.isGoogle ||
+                            (currentUser.isSandbox && email.toLowerCase().endsWith('@gmail.com'));
+    
+    if (isGmailOrGoogle) {
+      if (userProfile) {
+        const fullName = (userProfile.fullName || '').trim();
+        const fName = (userProfile.firstName || '').trim();
+        const lName = (userProfile.lastName || '').trim();
+        
+        const emailPrefix = email.split('@')[0];
+        if (
+          fullName.toLowerCase() === emailPrefix.toLowerCase() || 
+          fullName.toLowerCase() === `${emailPrefix} student`.toLowerCase() ||
+          fullName.toLowerCase() === `${emailPrefix} member`.toLowerCase() ||
+          (fName.toLowerCase() === emailPrefix.toLowerCase() && (lName.toLowerCase() === 'student' || lName.toLowerCase() === 'member'))
+        ) {
+          return email;
+        }
+        
+        if (fullName) return fullName;
+        if (fName) return `${fName} ${lName}`.trim();
+      }
+      
+      if (currentUser.displayName && 
+          !currentUser.displayName.toLowerCase().includes('google user') && 
+          currentUser.displayName.toLowerCase() !== email.split('@')[0].toLowerCase()) {
+        return currentUser.displayName;
+      }
+      
+      return email;
+    }
+    
+    if (userProfile) {
+      return `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() || currentUser.displayName || email;
+    }
+    return currentUser.displayName || email;
+  };
+
+
   const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
@@ -107,7 +151,7 @@ export default function Navbar({
               <div className="flex items-center space-x-3">
                 <div className="flex flex-col text-right">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {userProfile ? `${userProfile.firstName} ${userProfile.lastName || ''}` : (currentUser.displayName || currentUser.email)}
+                    {getUserDisplayName()}
                   </span>
                   <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-450 flex items-center justify-end gap-1 uppercase">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -204,7 +248,7 @@ export default function Navbar({
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-bold text-slate-850 dark:text-slate-300">
-                    {userProfile ? `${userProfile.firstName} ${userProfile.lastName || ''}` : (currentUser.displayName || currentUser.email)}
+                    {getUserDisplayName()}
                   </span>
                   <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-450 uppercase">
                     {isAdmin ? 'Admin' : 'Member'}

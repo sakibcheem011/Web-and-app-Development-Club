@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import firebaseConfig from '../firebase-applet-config.json';
 import { initializeApp as realInitializeApp } from '@firebase/app';
 import { getAuth as realGetAuth, signInWithPopup as realSignInWithPopup, GoogleAuthProvider as RealGoogleAuthProvider } from '@firebase/auth';
@@ -65,7 +66,7 @@ export function getAuth() {
   return auth;
 }
 
-let authListener: ((user: any) => void) | null = null;
+export let authListener: ((user: any) => void) | null = null;
 
 export function onAuthStateChanged(authInstance: any, callback: (user: any) => void) {
   authListener = callback;
