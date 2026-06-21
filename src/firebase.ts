@@ -1,9 +1,13 @@
 import firebaseConfig from '../firebase-applet-config.json';
+import { initializeApp as realInitializeApp } from '@firebase/app';
+import { getAuth as realGetAuth, signInWithPopup as realSignInWithPopup, GoogleAuthProvider as RealGoogleAuthProvider } from '@firebase/auth';
 
 // Initialize Firebase with dynamic sandbox project attributes or fallback
 console.log("[Firebase Init] Initializing platform mock services...");
 
 export const app = {};
+const realApp = realInitializeApp(firebaseConfig);
+const realFirebaseAuth = realGetAuth(realApp);
 
 // Enum and Error structures matching the original
 export enum OperationType {
@@ -129,27 +133,54 @@ export async function createUserWithEmailAndPassword(authInstance: any, email: s
 }
 
 export async function signInWithPopup(authInstance: any, provider: any) {
-  const email = prompt("Enter your Google Account Email:", "google.user@gstu.edu.bd");
-  if (!email) throw new Error("Google Sign-In cancelled");
-  const name = email.split('@')[0];
-  const user = {
-    uid: `google_usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
-    email: email.toLowerCase(),
-    displayName: name.charAt(0).toUpperCase() + name.slice(1) + " (Google)",
-    photoURL: "",
-    isGoogle: true
-  };
-  
-  await fetch('/api/auth/google', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: user.email, uid: user.uid, displayName: user.displayName })
-  });
-  
-  localStorage.setItem('local_user', JSON.stringify(user));
-  auth.currentUser = user as any;
-  if (authListener) authListener(user);
-  return { user };
+  try {
+    const realProvider = new RealGoogleAuthProvider();
+    const result = await realSignInWithPopup(realFirebaseAuth, realProvider);
+    const firebaseUser = result.user;
+    
+    const user = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email ? firebaseUser.email.toLowerCase() : '',
+      displayName: firebaseUser.displayName || 'Google User',
+      photoURL: firebaseUser.photoURL || '',
+      isGoogle: true
+    };
+    
+    // Log the user into our PostgreSQL/local DB backend
+    await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, uid: user.uid, displayName: user.displayName })
+    });
+    
+    localStorage.setItem('local_user', JSON.stringify(user));
+    auth.currentUser = user as any;
+    if (authListener) authListener(user);
+    return { user };
+  } catch (error) {
+    console.error("Real Google Sign-In failed, falling back to mock input:", error);
+    const email = prompt("Enter your Google Account Email:", "google.user@gstu.edu.bd");
+    if (!email) throw new Error("Google Sign-In cancelled");
+    const name = email.split('@')[0];
+    const user = {
+      uid: `google_usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      email: email.toLowerCase(),
+      displayName: name.charAt(0).toUpperCase() + name.slice(1) + " (Google)",
+      photoURL: "",
+      isGoogle: true
+    };
+    
+    await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, uid: user.uid, displayName: user.displayName })
+    });
+    
+    localStorage.setItem('local_user', JSON.stringify(user));
+    auth.currentUser = user as any;
+    if (authListener) authListener(user);
+    return { user };
+  }
 }
 
 export async function signInWithRedirect(authInstance: any, provider: any) {
@@ -160,7 +191,7 @@ export async function getRedirectResult(authInstance: any) {
   return null;
 }
 
-export class GoogleAuthProvider {}
+export const GoogleAuthProvider = RealGoogleAuthProvider;
 
 // ----------------------------------------------------
 // Mock firebase/firestore exports
