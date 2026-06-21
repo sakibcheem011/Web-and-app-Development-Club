@@ -631,6 +631,11 @@ export default function AdminDashboardView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 2000000) {
+      setToast({ type: 'error', message: 'Image size is too large. Please select a file under 2MB.' });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64String = reader.result as string;
