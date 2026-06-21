@@ -171,9 +171,7 @@ export async function signInWithPopup(authInstance: any, provider: any) {
     return { user };
   } catch (error: any) {
     console.error("Real Google Sign-In failed:", error);
-    const mockTriggerError = new Error("Real Google Sign-In is unavailable on this host. Use mock sign-in.");
-    (mockTriggerError as any).code = 'auth/mock-auth-trigger';
-    throw mockTriggerError;
+    throw error;
   }
 }
 

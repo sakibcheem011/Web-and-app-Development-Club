@@ -526,15 +526,11 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
           console.error("[Google Auth Redirect Fallback Error]", redirectErr);
           setAuthError(`Sign-in was blocked. Chrome or Safari may have blocked cookie access on localhost. Use the 'Sign-in with Google (Localhost Redirect Fallback)' button under the SSO options instead!`);
         }
-      } else if (err.code === 'auth/mock-auth-trigger') {
-        setShowMockGoogleInput(true);
-        setLoading(false);
-        return;
       } else if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
         const currentDomain = window.location.host;
-        setAuthError(`Unauthorized Domain Warning: "${currentDomain}" is not authorized under your Firebase Console -> Authentication -> Settings -> Authorized Domains. Please authorize this hostname or use our Sandbox bypass above!`);
+        setAuthError(`Unauthorized Domain Warning: "${currentDomain}" is not authorized under your Firebase Console -> Authentication -> Settings -> Authorized Domains. Please authorize this hostname, or click below to use the Mock Google SSO option.`);
       } else {
-        setAuthError(err.message || 'OAuth interaction failed. Try using the secure Redirect Fallback.');
+        setAuthError(err.message || 'OAuth interaction failed. If this is a sandbox/local environment, try using Mock Google Login instead.');
       }
       setLoading(false);
     }
@@ -1190,6 +1186,17 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
                           <span>Use Google Auth Redirect (Reliable on Localhost)</span>
                         </button>
                       )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMockGoogleInput(true);
+                          setAuthError(null);
+                        }}
+                        className="text-[10px] text-slate-500 hover:text-slate-400 font-semibold underline text-center cursor-pointer mt-1"
+                      >
+                        Trouble signing in? Use Mock Google Login fallback
+                      </button>
                     </div>
                   )}
 
