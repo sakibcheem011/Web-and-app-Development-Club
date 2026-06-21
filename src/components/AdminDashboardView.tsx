@@ -62,116 +62,7 @@ export default function AdminDashboardView() {
     // 1. Members
     const unsubMembers = onSnapshot(collection(db, 'student_profiles'), async (snap) => {
       if (snap.empty) {
-        const initialMembers: ClubMember[] = [
-          {
-            firstName: "Sakib",
-            lastName: "Al Hasan",
-            email: "cheemsakib@gmail.com",
-            isRegistered: true,
-            registeredAt: "2026-06-14",
-            activeCohort: "21-22",
-            role: "General Secretary",
-            picture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "MD Shakib",
-            lastName: "Hossen",
-            email: "shakib@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-13",
-            activeCohort: "21-22",
-            role: "General Secretary",
-            picture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "Administrator",
-            lastName: "GSTU",
-            email: "admin@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-12",
-            activeCohort: "20-21",
-            role: "Executive Committee"
-          },
-          {
-            firstName: "Dr. Md. MRINAL KANTI",
-            lastName: "BAOWALY",
-            email: "baowaly@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-01",
-            activeCohort: "GSTU Faculty",
-            role: "Chief Faculty Advisor & Head of Dept.",
-            picture: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "Dr. Md.",
-            lastName: "Akram Hossain",
-            email: "akram@bsmrstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-01",
-            activeCohort: "BSMRSTU Faculty",
-            role: "Chief Faculty Advisor & Head of Dept.",
-            picture: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "Tahmid",
-            lastName: "Rahman",
-            email: "tahmid.rahman@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-05",
-            activeCohort: "22-23",
-            role: "Club President",
-            picture: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "Nahid",
-            lastName: "Hasan",
-            email: "nahid.hasan@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-06",
-            activeCohort: "22-23",
-            role: "President",
-            picture: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "SH",
-            lastName: "Jisan",
-            email: "sh.jisan@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-07",
-            activeCohort: "22-23",
-            role: "Vice President",
-            picture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400"
-          },
-          {
-            firstName: "Mrinmoy Ahmed",
-            lastName: "Shouvo",
-            email: "mrinmoy.shouvo@gstu.edu.bd",
-            isRegistered: true,
-            registeredAt: "2026-06-08",
-            activeCohort: "21-22",
-            role: "General Secretary",
-            picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400"
-          }
-        ];
-        try {
-          for (const m of initialMembers) {
-            const safeId = m.email.replace(/\./g, '_');
-            const fullNameValue = `${m.firstName} ${m.lastName || 'Student'}`.trim();
-            const createdAtValue = m.registeredAt ? `${m.registeredAt}T12:00:00Z` : new Date().toISOString(); 
-            const payload = {
-              ...m,
-              uid: safeId,
-              fullName: fullNameValue,
-              profilePhoto: m.picture || '',
-              designation: m.role || 'General Member',
-              cohort: m.activeCohort || '22-23',
-              createdAt: createdAtValue,
-            };
-            await setDoc(doc(db, 'student_profiles', safeId), payload);
-          }
-        } catch (e) {
-          console.error("Auto seeding members failed: ", e);
-        }
+        setMembers([]);
       } else {
         const list: ClubMember[] = [];
         snap.forEach((doc) => {
@@ -196,13 +87,7 @@ export default function AdminDashboardView() {
     // 2. Announcements / Notices
     const unsubNotices = onSnapshot(collection(db, 'announcements'), async (snap) => {
       if (snap.empty) {
-        try {
-          for (const n of announcements) {
-            await setDoc(doc(db, 'announcements', n.id), n);
-          }
-        } catch (e) {
-          console.error("Auto seeding notices failed: ", e);
-        }
+        setNotices([]);
       } else {
         const list: Announcement[] = [];
         snap.forEach((doc) => {
@@ -215,13 +100,7 @@ export default function AdminDashboardView() {
     // 3. Events
     const unsubEvents = onSnapshot(collection(db, 'events'), async (snap) => {
       if (snap.empty) {
-        try {
-          for (const ev of clubEvents) {
-            await setDoc(doc(db, 'events', ev.id), ev);
-          }
-        } catch (e) {
-          console.error("Auto seeding events failed: ", e);
-        }
+        setEvents([]);
       } else {
         const list: ClubEvent[] = [];
         snap.forEach((doc) => {
@@ -234,13 +113,7 @@ export default function AdminDashboardView() {
     // 4. Projects
     const unsubProjects = onSnapshot(collection(db, 'projects'), async (snap) => {
       if (snap.empty) {
-        try {
-          for (const p of initialProjects) {
-            await setDoc(doc(db, 'projects', p.id), p);
-          }
-        } catch (e) {
-          console.error("Auto seeding projects failed: ", e);
-        }
+        setProjects([]);
       } else {
         const list: Project[] = [];
         snap.forEach((doc) => {
@@ -262,35 +135,7 @@ export default function AdminDashboardView() {
     // 6. Contact Inquiries
     const unsubInquiries = onSnapshot(collection(db, 'inquiries'), async (snap) => {
       if (snap.empty) {
-        const defaults = [
-          {
-            id: 'inq-default-1',
-            name: 'Nadim Hasan',
-            email: 'nadim.hasan@gstu.edu.bd',
-            subject: 'Query on Upcoming Cybersecurity Workshop',
-            message: 'Salam! I am Nadim Hasan, a 2nd-year student. I am very interested to join the Cybersecurity seminar, but I cannot see the registration link. Could you provide some details?',
-            chapter: 'GSTU',
-            createdAt: '2026-06-10T10:00:00.000Z',
-            isRead: true
-          },
-          {
-            id: 'inq-default-2',
-            name: 'Sushmita Sen',
-            email: 'sushmita@bsmrstu.edu.bd',
-            subject: 'Collaborating on AI/ML Research Project',
-            message: 'Honorable Admin, we are developing a healthcare project based on CNN algorithms and want to utilize the CSE club lab. How can we book access or request mentorship?',
-            chapter: 'BSMRSTU',
-            createdAt: '2026-06-11T02:30:00.000Z',
-            isRead: false
-          }
-        ];
-        try {
-          for (const inq of defaults) {
-            await setDoc(doc(db, 'inquiries', inq.id), inq);
-          }
-        } catch (e) {
-          console.error("Auto seeding inquiries failed: ", e);
-        }
+        setInquiries([]);
       } else {
         const list: any[] = [];
         snap.forEach((doc) => {

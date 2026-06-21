@@ -19,14 +19,7 @@ export default function ProjectsView() {
   React.useEffect(() => {
     const unsub = onSnapshot(collection(db, 'projects'), async (snapshot) => {
       if (snapshot.empty) {
-        // Automatically seed the database if it has no entries yet
-        try {
-          for (const proj of initialProjects) {
-            await setDoc(doc(db, 'projects', proj.id), proj);
-          }
-        } catch (err) {
-          console.error("Auto seeding projects failed: ", err);
-        }
+        setProjects([]);
       } else {
         const loaded: Project[] = [];
         snapshot.forEach((doc) => {

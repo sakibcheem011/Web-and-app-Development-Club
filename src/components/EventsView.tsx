@@ -20,14 +20,7 @@ export default function EventsView() {
   React.useEffect(() => {
     const unsub = onSnapshot(collection(db, 'events'), async (snapshot) => {
       if (snapshot.empty) {
-        // Automatically seed table
-        try {
-          for (const ev of clubEvents) {
-            await setDoc(doc(db, 'events', ev.id), ev);
-          }
-        } catch (err) {
-          console.error("Auto seeding events failed: ", err);
-        }
+        setEvents([]);
       } else {
         const loaded: ClubEvent[] = [];
         snapshot.forEach((doc) => {

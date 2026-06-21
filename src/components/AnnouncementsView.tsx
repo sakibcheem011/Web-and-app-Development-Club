@@ -21,14 +21,7 @@ export default function AnnouncementsView() {
   React.useEffect(() => {
     const unsub = onSnapshot(collection(db, 'announcements'), async (snapshot) => {
       if (snapshot.empty) {
-        // Automatically seed table
-        try {
-          for (const n of announcements) {
-            await setDoc(doc(db, 'announcements', n.id), n);
-          }
-        } catch (err) {
-          console.error("Auto seeding announcements failed: ", err);
-        }
+        setAllNotices([]);
       } else {
         const loaded: Announcement[] = [];
         snapshot.forEach((doc) => {
