@@ -295,7 +295,58 @@ export default function AnimatedGradient({
 
     startTimeRef.current = performance.now();
 
+    // Pre-parse and cache colors to avoid string parsing allocations every frame
+    let cachedC1 = hexToRgba(paramsRef.current.color1);
+    let cachedC2 = hexToRgba(paramsRef.current.color2);
+    let cachedC3 = hexToRgba(paramsRef.current.color3);
+    let lastColor1 = paramsRef.current.color1;
+    let lastColor2 = paramsRef.current.color2;
+    let lastColor3 = paramsRef.current.color3;
+
+    let isVisible = true;
+    let isTabVisible = true;
+
+    const startLoop = () => {
+      if (frameIdRef.current === undefined && isVisible && isTabVisible) {
+        frameIdRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    const stopLoop = () => {
+      if (frameIdRef.current !== undefined) {
+        cancelAnimationFrame(frameIdRef.current);
+        frameIdRef.current = undefined;
+      }
+    };
+
+    // Intersection Observer to monitor when canvas is visible in the viewport
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible && isTabVisible) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    }, { threshold: 0.01 });
+    observer.observe(container);
+
+    // Tab visibility listener to pause loop when backgrounded
+    const handleVisibilityChange = () => {
+      isTabVisible = document.visibilityState === 'visible';
+      if (isVisible && isTabVisible) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const animate = (time: number) => {
+      if (!isVisible || !isTabVisible) {
+        stopLoop();
+        return;
+      }
+
       const elapsed = (time - startTimeRef.current) / 1000;
       const currentParams = paramsRef.current;
       const speed = (currentParams.speed / 100) * 5;
@@ -306,12 +357,23 @@ export default function AnimatedGradient({
       gl.uniform1f(uniforms.u_scale, currentParams.scale);
       gl.uniform1f(uniforms.u_rotation, (currentParams.rotation * Math.PI) / 180);
 
-      const c1 = hexToRgba(currentParams.color1);
-      const c2 = hexToRgba(currentParams.color2);
-      const c3 = hexToRgba(currentParams.color3);
-      gl.uniform4f(uniforms.u_color1, c1[0], c1[1], c1[2], c1[3]);
-      gl.uniform4f(uniforms.u_color2, c2[0], c2[1], c2[2], c2[3]);
-      gl.uniform4f(uniforms.u_color3, c3[0], c3[1], c3[2], c3[3]);
+      // Check if colors changed before parsing them to optimize garbage collection
+      if (currentParams.color1 !== lastColor1) {
+        cachedC1 = hexToRgba(currentParams.color1);
+        lastColor1 = currentParams.color1;
+      }
+      if (currentParams.color2 !== lastColor2) {
+        cachedC2 = hexToRgba(currentParams.color2);
+        lastColor2 = currentParams.color2;
+      }
+      if (currentParams.color3 !== lastColor3) {
+        cachedC3 = hexToRgba(currentParams.color3);
+        lastColor3 = currentParams.color3;
+      }
+
+      gl.uniform4f(uniforms.u_color1, cachedC1[0], cachedC1[1], cachedC1[2], cachedC1[3]);
+      gl.uniform4f(uniforms.u_color2, cachedC2[0], cachedC2[1], cachedC2[2], cachedC2[3]);
+      gl.uniform4f(uniforms.u_color3, cachedC3[0], cachedC3[1], cachedC3[2], cachedC3[3]);
 
       gl.uniform1f(uniforms.u_proportion, currentParams.proportion / 100);
       gl.uniform1f(uniforms.u_softness, currentParams.softness / 100);
@@ -328,12 +390,12 @@ export default function AnimatedGradient({
       frameIdRef.current = requestAnimationFrame(animate);
     };
 
-    frameIdRef.current = requestAnimationFrame(animate);
+    startLoop();
 
     return () => {
-      if (frameIdRef.current !== undefined) {
-        cancelAnimationFrame(frameIdRef.current);
-      }
+      stopLoop();
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       resizeObserver.disconnect();
       gl.deleteProgram(program);
       gl.deleteShader(vertexShader);
