@@ -39,6 +39,7 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
   const [showMockGoogleInput, setShowMockGoogleInput] = React.useState(false);
   const [mockGoogleEmail, setMockGoogleEmail] = React.useState('google.user@gstu.edu.bd');
+  const [pendingGoogleUser, setPendingGoogleUser] = React.useState<any | null>(null);
 
   const isLocalhost = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || 
@@ -68,6 +69,7 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
     setAuthError(null);
     setSuccessMsg(null);
     setShowMockGoogleInput(false);
+    setPendingGoogleUser(null);
   }, [mode, isOpen]);
 
   // For 3D card rotatability
@@ -490,39 +492,16 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
       const docSnap = await getDoc(profileRef);
       
       if (!docSnap.exists()) {
-        const spaceIndex = user.displayName?.indexOf(' ') ?? -1;
-        const fName = spaceIndex !== -1 ? user.displayName?.substring(0, spaceIndex) : (user.displayName || 'OAuth');
-        const lName = spaceIndex !== -1 ? user.displayName?.substring(spaceIndex + 1) : 'Member';
-        const fullNameValue = user.displayName || `${fName} ${lName}`.trim();
-        const activeCohortValue = '22-23';
-        const createdAtValue = new Date().toISOString();
-        const todayDate = createdAtValue.split('T')[0];
-
-        const payload = {
+        setPendingGoogleUser({
           uid: user.uid,
-          fullName: fullNameValue,
-          firstName: fName,
-          lastName: lName,
           email: cleanEmail,
-          profilePhoto: user.photoURL || '',
-          picture: user.photoURL || '',
-          designation: isUserAdmin ? 'General Secretary' : 'General Member',
-          role: isUserAdmin ? 'General Secretary' : 'General Member',
-          isRegistered: true,
-          createdAt: createdAtValue,
-          registeredAt: todayDate,
-          cohort: activeCohortValue,
-          activeCohort: activeCohortValue,
-        };
-
-        console.log("[Google Auth] Attempting setDoc on path '" + profilePath + "':", payload);
-        try {
-          await setDoc(profileRef, payload);
-          console.log("[Google Auth] Successfully executed setDoc on path '" + profilePath + "'");
-        } catch (fsErr: any) {
-          console.error("[Google Auth] Failed setDoc on path '" + profilePath + "':", fsErr);
-          handleFirestoreError(fsErr, OperationType.WRITE, profilePath);
-        }
+          displayName: user.displayName || 'Google User',
+          photoURL: user.photoURL || '',
+          isGoogle: true,
+          isUserAdmin
+        });
+        setLoading(false);
+        return;
       } else {
         console.log("[Google Auth] Existing student profile found at path '" + profilePath + "'. Skipping creation.");
       }
@@ -594,32 +573,16 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
       const docSnap = await getDoc(profileRef);
       
       if (!docSnap.exists()) {
-        const spaceIndex = user.displayName?.indexOf(' ') ?? -1;
-        const fName = spaceIndex !== -1 ? user.displayName?.substring(0, spaceIndex) : (user.displayName || 'OAuth');
-        const lName = spaceIndex !== -1 ? user.displayName?.substring(spaceIndex + 1) : 'Member';
-        const fullNameValue = user.displayName || `${fName} ${lName}`.trim();
-        const activeCohortValue = selectedCohort || '22-23';
-        const createdAtValue = new Date().toISOString();
-        const todayDate = createdAtValue.split('T')[0];
-
-        const payload = {
+        setPendingGoogleUser({
           uid: user.uid,
-          fullName: fullNameValue,
-          firstName: fName,
-          lastName: lName,
           email: cleanEmail,
-          profilePhoto: user.photoURL || '',
-          picture: user.photoURL || '',
-          designation: isUserAdmin ? 'General Secretary' : 'General Member',
-          role: isUserAdmin ? 'General Secretary' : 'General Member',
-          isRegistered: true,
-          createdAt: createdAtValue,
-          registeredAt: todayDate,
-          cohort: activeCohortValue,
-          activeCohort: activeCohortValue,
-        };
-
-        await setDoc(profileRef, payload);
+          displayName: user.displayName || 'Google User',
+          photoURL: user.photoURL || '',
+          isGoogle: true,
+          isUserAdmin
+        });
+        setLoading(false);
+        return;
       }
       
       localStorage.setItem('local_user', JSON.stringify(user));
@@ -634,6 +597,69 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
       }, 1000);
     } catch (err: any) {
       setAuthError(err.message || 'Mock Google login failed.');
+      setLoading(false);
+    }
+  };
+
+  const handlePendingGoogleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingGoogleUser) return;
+    setLoading(true);
+    setAuthError(null);
+    try {
+      const { uid, email, displayName, photoURL, isUserAdmin } = pendingGoogleUser;
+      
+      const profilePath = `student_profiles/${uid}`;
+      const profileRef = doc(db, 'student_profiles', uid);
+      const spaceIndex = displayName?.indexOf(' ') ?? -1;
+      const fName = spaceIndex !== -1 ? displayName?.substring(0, spaceIndex) : (displayName || 'OAuth');
+      const lName = spaceIndex !== -1 ? displayName?.substring(spaceIndex + 1) : 'Member';
+      const fullNameValue = displayName || `${fName} ${lName}`.trim();
+      const activeCohortValue = selectedCohort || '22-23';
+      const createdAtValue = new Date().toISOString();
+      const todayDate = createdAtValue.split('T')[0];
+
+      const payload = {
+        uid,
+        fullName: fullNameValue,
+        firstName: fName,
+        lastName: lName,
+        email,
+        profilePhoto: photoURL || '',
+        picture: photoURL || '',
+        designation: isUserAdmin ? 'General Secretary' : 'General Member',
+        role: isUserAdmin ? 'General Secretary' : 'General Member',
+        isRegistered: true,
+        createdAt: createdAtValue,
+        registeredAt: todayDate,
+        cohort: activeCohortValue,
+        activeCohort: activeCohortValue,
+      };
+
+      console.log("[Google Auth Signup] Registering student profile path '" + profilePath + "':", payload);
+      await setDoc(profileRef, payload);
+      
+      const userSession = {
+        uid,
+        email,
+        displayName,
+        photoURL,
+        isGoogle: true
+      };
+
+      localStorage.setItem('local_user', JSON.stringify(userSession));
+      auth.currentUser = userSession as any;
+      if (authListener) authListener(userSession);
+      
+      setSuccessMsg('Successfully registered and signed in!');
+      setLoading(false);
+      setTimeout(() => {
+        onSuccess(userSession, isUserAdmin);
+        onClose();
+      }, 1000);
+    } catch (err: any) {
+      console.error("[Google Auth Signup Error]", err);
+      setAuthError(err.message || 'Failed to complete registration.');
       setLoading(false);
     }
   };
@@ -700,6 +726,97 @@ export default function AuthModals({ isOpen, mode, onClose, onSuccess, onModeCha
                 <p className="text-xs text-slate-400 font-mono tracking-wider animate-pulse">
                   Establishing secure dynamic session...
                 </p>
+              </div>
+            ) : pendingGoogleUser ? (
+              <div className="space-y-6">
+                {/* Brand / Logo Segment */}
+                <div className="text-center space-y-1">
+                  <div className="mx-auto w-12 h-12 rounded-full border border-white/10 flex items-center justify-center relative overflow-hidden bg-white/5 shadow-inner">
+                    <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-br from-white via-purple-200 to-emerald-200">
+                      G
+                    </span>
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-purple-500/10 to-transparent" />
+                  </div>
+
+                  <h1 className="text-xl font-extrabold text-white tracking-tight font-display pt-2">
+                    Confirm Academic Session
+                  </h1>
+                  
+                  <p className="text-slate-400 text-xs px-4">
+                    Welcome <span className="text-purple-400 font-semibold">{pendingGoogleUser.displayName}</span>! To complete your registry, please select your academic session.
+                  </p>
+                </div>
+
+                <form onSubmit={handlePendingGoogleSignup} className="space-y-4">
+                  {authError && (
+                    <div className="p-3 text-xs font-normal rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 space-y-1 flex items-start space-x-1.5 font-semibold animate-shake">
+                      <span className="text-sm">⚠️</span>
+                      <span>{authError}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1 font-mono">
+                      Your Email
+                    </label>
+                    <input
+                      type="text"
+                      disabled
+                      value={pendingGoogleUser.email}
+                      className="w-full px-3 py-2.5 text-xs text-slate-400 bg-slate-900 border border-white/5 rounded-lg font-mono focus:outline-none opacity-70"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1 font-mono">
+                      Academic Session
+                    </label>
+                    <select
+                      value={selectedCohort}
+                      onChange={(e) => setSelectedCohort(e.target.value)}
+                      className="w-full px-3 py-2.5 text-xs text-white bg-slate-900 border border-white/5 rounded-lg focus:outline-none focus:border-purple-500 transition-all font-semibold focus:bg-slate-850"
+                    >
+                      <option value="25-26" className="bg-slate-950 text-white">Session 25-26</option>
+                      <option value="24-25" className="bg-slate-950 text-white">Session 24-25</option>
+                      <option value="23-24" className="bg-slate-950 text-white">Session 23-24</option>
+                      <option value="22-23" className="bg-slate-950 text-white">Session 22-23 (Active)</option>
+                      <option value="21-22" className="bg-slate-950 text-white">Session 21-22</option>
+                      <option value="20-21" className="bg-slate-950 text-white">Session 20-21</option>
+                      <option value="19-20" className="bg-slate-950 text-white">Session 19-20</option>
+                      <option value="18-19" className="bg-slate-950 text-white">Session 18-19</option>
+                      <option value="17-18" className="bg-slate-950 text-white">Session 17-18</option>
+                      <option value="16-17" className="bg-slate-950 text-white">Session 16-17</option>
+                      <option value="15-16" className="bg-slate-950 text-white">Session 15-16</option>
+                      <option value="14-15" className="bg-slate-950 text-white">Session 14-15</option>
+                      <option value="13-14" className="bg-slate-950 text-white">Session 13-14</option>
+                      <option value="12-13" className="bg-slate-950 text-white">Session 12-13</option>
+                      <option value="11-12" className="bg-slate-950 text-white">Session 11-12</option>
+                      <option value="10-11" className="bg-slate-950 text-white">Session 10-11</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-600 text-white font-extrabold py-3.5 px-4 rounded-xl text-sm transition-all shadow duration-200 active:scale-98 cursor-pointer disabled:opacity-50"
+                  >
+                    <span>{loading ? 'Completing Registration...' : 'COMPLETE REGISTRATION'}</span>
+                    {!loading && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </form>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingGoogleUser(null);
+                      setAuthError(null);
+                    }}
+                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors duration-200 underline decoration-slate-600 hover:decoration-white underline-offset-4"
+                  >
+                    Cancel sign-up
+                  </button>
+                </div>
               </div>
             ) : showMockGoogleInput ? (
               <div className="space-y-6">
