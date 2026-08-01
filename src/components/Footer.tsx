@@ -110,9 +110,7 @@ export default function Footer({ chapter, onViewChange }: FooterProps) {
               </span>
             </div>
             
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              The official student-led software development guild of {isGstu ? 'Gurudhas Sutradhar University' : 'BSMRSTU'}, driving computer science innovations and real-world tech-preparedness.
-            </p>
+
           </div>
 
           <p className="text-slate-500 text-xs pt-4">
