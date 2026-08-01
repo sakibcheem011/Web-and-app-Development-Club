@@ -56,7 +56,16 @@ export default function EventsView() {
     const matchesCategory = categoryFilter === 'All' || event.category === categoryFilter;
     
     // Status (Upcoming vs Past) match
-    const isPastEvent = ['e4', 'e5', 'e6'].includes(event.id);
+    const isPastEvent = (() => {
+      const eDate = new Date(event.date);
+      if (!isNaN(eDate.getTime())) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        eDate.setHours(0, 0, 0, 0);
+        return eDate < today;
+      }
+      return ['e4', 'e5', 'e6'].includes(event.id);
+    })();
     const matchesStatus = activeTab === 'Upcoming' ? !isPastEvent : isPastEvent;
 
     return matchesSearch && matchesCategory && matchesStatus;
@@ -94,8 +103,8 @@ export default function EventsView() {
   };
 
   // Get key featured events to display explicitly
-  const featuredEvent = events.find(e => e.isFeatured) || events[0];
-  const sidebarEvents = events.filter(e => e.id === 'e2' || e.id === 'e3' || !e.isFeatured).slice(0, 2);
+  const featuredEvent = events.find(e => e.isFeatured) || events[0] || null;
+  const sidebarEvents = events.filter(e => e.id !== featuredEvent?.id).slice(0, 2);
 
   return (
     <div className="font-sans bg-transparent py-12 sm:py-16 text-slate-800 dark:text-slate-200 transition-colors duration-300">

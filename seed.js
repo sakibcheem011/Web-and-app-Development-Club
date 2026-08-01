@@ -415,9 +415,8 @@ async function seed() {
       );
     `);
     
-    console.log("Tables created successfully. Seeding data...");
-    
-    // Seed Announcements
+    console.log("Tables created successfully. Database seeding has been disabled to prevent overriding admin changes.");
+    return;
     console.log(`Seeding ${announcements.length} records into 'announcements'...`);
     for (const item of announcements) {
       await client.query(
