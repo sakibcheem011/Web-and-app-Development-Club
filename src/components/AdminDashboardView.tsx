@@ -878,6 +878,51 @@ export default function AdminDashboardView() {
         </div>
       )}
 
+      {/* Admin Profile Modal */}
+      {showAdminProfile && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col relative">
+            <button 
+                onClick={() => setShowAdminProfile(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1 rounded-lg bg-slate-100 dark:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+            </button>
+            <div className="p-6 space-y-5 text-sm text-slate-600 dark:text-slate-300 mt-2">
+                <div className="flex flex-col items-center justify-center space-y-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 border-2 border-emerald-500 shadow-inner">
+                    <Shield className="w-10 h-10" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Admin Details</h3>
+                    <span className="inline-block mt-1 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Super Administrator</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 pt-2 text-xs">
+                  <div className="flex flex-col space-y-1">
+                    <strong className="text-[10px] uppercase font-mono text-slate-400 dark:text-slate-500">Name</strong>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">MD Shakib Hossen</span>
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <strong className="text-[10px] uppercase font-mono text-slate-400 dark:text-slate-500">Email Address</strong>
+                    <span className="font-bold font-mono text-slate-800 dark:text-slate-100">cheemsakib@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <strong className="text-[10px] uppercase font-mono text-slate-400 dark:text-slate-500">Official Title</strong>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">System Admin</span>
+                  </div>
+                </div>
+            </div>
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
+              <button onClick={() => setShowAdminProfile(false)} className="w-full py-2.5 bg-slate-900 dark:bg-slate-800 text-white dark:text-white rounded-xl text-xs font-bold hover:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Custom Reactive Confirmation Delete Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
