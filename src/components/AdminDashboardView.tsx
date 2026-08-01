@@ -244,9 +244,14 @@ export default function AdminDashboardView() {
   const [memberCohortFilter, setMemberCohortFilter] = React.useState('ALL');
 
   const filteredMembers = members.filter(m => {
-    // Exclude administrators from the Student Profiles Registry
+    // Exclude administrators and executive members from the Student Profiles Registry
     const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
     if (allowedAdmins.includes(m.email.toLowerCase())) {
+      return false;
+    }
+
+    // Only show general members in the registry
+    if (m.role && m.role !== 'General Member') {
       return false;
     }
 
