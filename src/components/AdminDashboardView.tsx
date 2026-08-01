@@ -275,6 +275,15 @@ export default function AdminDashboardView() {
     picture: ''
   });
 
+  const [newExecutiveForm, setNewExecutiveForm] = React.useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    role: 'Executive Committee',
+    cohort: '22-23',
+    picture: ''
+  });
+
   const [toast, setToast] = React.useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Dynamic notification state for special executive selection
@@ -437,6 +446,41 @@ export default function AdminDashboardView() {
       setTimeout(() => setToast(null), 4000);
     } catch (err) {
       setToast({ type: 'error', message: `Member registration failed: ${err instanceof Error ? err.message : String(err)}` });
+      setTimeout(() => setToast(null), 5000);
+      handleFirestoreError(err, OperationType.WRITE, `student_profiles/${safeId}`);
+    }
+  };
+
+  const handleAddExecutive = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExecutiveForm.firstName || !newExecutiveForm.email) return;
+    const email = newExecutiveForm.email.trim();
+    const safeId = email.replace(/\./g, '_');
+    
+    const added: any = {
+      uid: safeId,
+      fullName: `${newExecutiveForm.firstName.trim()} ${newExecutiveForm.lastName.trim() || 'Student'}`.trim(),
+      firstName: newExecutiveForm.firstName.trim(),
+      lastName: newExecutiveForm.lastName.trim() || 'Student',
+      email: email,
+      isRegistered: true,
+      registeredAt: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+      activeCohort: newExecutiveForm.cohort.trim(),
+      cohort: newExecutiveForm.cohort.trim(),
+      role: newExecutiveForm.role,
+      designation: newExecutiveForm.role,
+      profilePhoto: newExecutiveForm.picture?.trim() || '',
+      picture: newExecutiveForm.picture?.trim() || ''
+    };
+
+    try {
+      await setDoc(doc(db, 'student_profiles', safeId), added);
+      setNewExecutiveForm({ firstName: '', lastName: '', email: '', role: 'Executive Committee', cohort: '22-23', picture: '' });
+      setToast({ type: 'success', message: `Executive member registered successfully!` });
+      setTimeout(() => setToast(null), 4000);
+    } catch (err) {
+      setToast({ type: 'error', message: `Executive registration failed: ${err instanceof Error ? err.message : String(err)}` });
       setTimeout(() => setToast(null), 5000);
       handleFirestoreError(err, OperationType.WRITE, `student_profiles/${safeId}`);
     }
@@ -1643,102 +1687,174 @@ export default function AdminDashboardView() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6 max-w-3xl mx-auto">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
-                      <h4 className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-xs">
-                        Executive Committee Assignments
-                      </h4>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Add executive form */}
+                  <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                      <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <h3 className="font-bold font-display text-sm text-slate-900 dark:text-white">Add Executive Member</h3>
                     </div>
-                    <span className="text-[10px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded">
-                      all registered members
-                    </span>
-                  </div>
 
-                  <div className="space-y-6 divide-y divide-slate-100 dark:divide-slate-800">
-                    {['Chief Faculty Advisor & Head of Dept.', 'President', 'Vice President', 'Secretary', 'General Secretary'].map((role, idx) => {
-                      const candidates = members;
-                      const currentHolder = candidates.find(m => {
-                        const r = (m.role || '').toLowerCase();
-                        if (role === 'President') return r === 'president' || r === 'club president';
-                        return r === role.toLowerCase();
-                      });
+                    <form onSubmit={handleAddExecutive} className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">First Name</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="e.g. Alan"
+                          value={newExecutiveForm.firstName}
+                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, firstName: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-medium"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Last Name</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Turing"
+                          value={newExecutiveForm.lastName}
+                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, lastName: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-medium"
+                        />
+                      </div>
 
-                      return (
-                        <div key={role} className={`pt-5 ${idx === 0 ? 'pt-0 border-t-0' : ''} space-y-3`}>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-300 flex items-center space-x-1.5 font-display">
-                              <span className="font-mono text-emerald-600 text-[10px]">0{idx + 1}.</span>
-                              <span>{role}</span>
-                            </span>
-                            {currentHolder ? (
-                              <span className="font-mono text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40 px-2 py-0.5 rounded capitalize">
-                                {currentHolder.firstName} is Assigned
-                              </span>
-                            ) : (
-                              <span className="font-mono text-[9px] font-bold text-slate-400 bg-slate-105 dark:bg-slate-800 px-2 py-0.5 rounded">
-                                Unassigned
-                              </span>
-                            )}
-                          </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">University Email</label>
+                        <input 
+                          type="email" 
+                          required
+                          placeholder="alan.turing@gstu.edu.bd"
+                          value={newExecutiveForm.email}
+                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, email: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                        />
+                      </div>
 
-                          {/* Current Assigned Block */}
-                          {currentHolder ? (
-                            <div className="flex items-center space-x-3 p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-xl">
-                              <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 shrink-0">
-                                {currentHolder.picture && !currentHolder.picture.startsWith('https://images.unsplash.com') ? (
-                                  <img src={currentHolder.picture} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs">
-                                    {currentHolder.firstName[0]}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="space-y-0.5 min-w-0">
-                                <div className="font-bold text-slate-800 dark:text-white text-xs truncate">
-                                  {currentHolder.firstName} {currentHolder.lastName}
-                                </div>
-                                <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate font-mono">
-                                  {currentHolder.email}
-                                </div>
-                              </div>
-                            </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Designation / Role</label>
+                        <select
+                          value={newExecutiveForm.role}
+                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, role: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-bold"
+                        >
+                          <option value="Executive Committee">Executive Committee</option>
+                          <option value="President">President</option>
+                          <option value="Vice President">Vice President</option>
+                          <option value="Secretary">Secretary</option>
+                          <option value="General Secretary">General Secretary</option>
+                          <option value="Chief Faculty Advisor & Head of Dept.">Chief Faculty Advisor & Head of Dept.</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="e.g. 21-22"
+                          value={newExecutiveForm.cohort}
+                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, cohort: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Profile Photo (Optional)</label>
+                        <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg p-2">
+                          {newExecutiveForm.picture ? (
+                            <img 
+                              src={newExecutiveForm.picture} 
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700" 
+                              alt="Avatar"
+                            />
                           ) : (
-                            <div className="text-[10px] text-orange-600 bg-orange-50/50 dark:bg-orange-950/20 px-3 py-2.5 rounded-xl border border-orange-200/20 font-medium">
-                              ⚠️ No student assigned to this office yet. Select a candidate below.
+                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-semibold text-slate-500 dark:text-slate-400">
+                              None
                             </div>
                           )}
-
-                          {/* Select Dropdown & Confirm Action */}
-                          <div className="flex items-center space-x-2">
-                            <select
-                              id={`select-executive-${role.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                              defaultValue={currentHolder ? currentHolder.email : ''}
-                              className="flex-1 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 text-slate-850 dark:text-slate-100 text-xs px-3 py-2 rounded-xl font-medium focus:outline-none focus:border-emerald-500 cursor-pointer"
-                            >
-                              <option value="">-- Choose Candidate --</option>
-                              {candidates.map(cand => (
-                                <option key={cand.email} value={cand.email}>
-                                  {cand.firstName} {cand.lastName} ({cand.email})
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => {
-                                const selectEl = document.getElementById(`select-executive-${role.replace(/[^a-zA-Z0-9]/g, '-')}`) as HTMLSelectElement;
-                                if (selectEl) {
-                                  handleAssignCommittee('GSTU', role, selectEl.value);
-                                }
-                              }}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] font-mono py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm shrink-0 uppercase tracking-wider"
-                            >
-                              Assign
-                            </button>
-                          </div>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const r = new FileReader();
+                                r.onloadend = () => setNewExecutiveForm(prev => ({ ...prev, picture: r.result as string }));
+                                r.readAsDataURL(file);
+                              }
+                            }}
+                            className="text-[9px] text-slate-500 dark:text-slate-400 file:mr-2 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[9px] file:font-mono file:font-bold file:bg-slate-200 dark:file:bg-slate-700 dark:file:text-slate-200 file:cursor-pointer"
+                          />
                         </div>
-                      );
-                    })}
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-sm block active:scale-95 text-center mt-4 cursor-pointer"
+                      >
+                        Create Executive
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* List of custom executives */}
+                  <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                      <div className="space-y-0.5">
+                        <h3 className="font-bold font-display text-sm text-slate-900 dark:text-white">Current Executive Committee</h3>
+                        <p className="text-[10px] text-slate-500 font-medium font-sans">Manage current executive members</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {members.filter(m => m.role && m.role !== 'General Member' && !['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'].includes(m.email.toLowerCase())).map((exec) => (
+                        <div key={exec.email} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-850 shrink-0">
+                              {exec.picture && !exec.picture.startsWith('https://images.unsplash.com') ? (
+                                <img src={exec.picture} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs">
+                                  {exec.firstName[0]}
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="font-bold text-slate-800 dark:text-white text-xs truncate">
+                                {exec.firstName} {exec.lastName}
+                              </div>
+                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                                {exec.role}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Demote this member to General Member?')) {
+                                try {
+                                  const execId = exec.id || exec.email.replace(/\./g, '_');
+                                  await setDoc(doc(db, 'student_profiles', execId), {
+                                    ...exec,
+                                    role: 'General Member',
+                                    designation: 'General Member'
+                                  }, { merge: true });
+                                  setToast({ type: 'success', message: 'Member demoted successfully' });
+                                  setTimeout(() => setToast(null), 3000);
+                                } catch (err) {
+                                  setToast({ type: 'error', message: 'Failed to demote member' });
+                                }
+                              }
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg cursor-pointer"
+                            title="Demote to General Member"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
