@@ -135,6 +135,34 @@ async function initDb() {
         image TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS admins (
+        uid TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        last_login TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS inquiries (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        email TEXT,
+        subject TEXT,
+        message TEXT,
+        chapter TEXT,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS rsvps (
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
+        event_title TEXT,
+        full_name TEXT,
+        student_id TEXT,
+        email TEXT,
+        created_at TEXT
+      );
     `);
     
     console.log("[Server DB] PostgreSQL database schema checked and initialized.");
@@ -243,6 +271,43 @@ const TABLE_SCHEMAS = {
       id: 'id', category: 'category', title: 'title',
       description: 'description', date: 'date', image: 'image',
       created_at: 'createdAt'
+    }
+  },
+  admins: {
+    pk: 'uid',
+    columns: {
+      uid: 'uid', email: 'email', lastLogin: 'last_login', last_login: 'last_login'
+    },
+    snakeToCamel: {
+      uid: 'uid', email: 'email', last_login: 'lastLogin'
+    }
+  },
+  inquiries: {
+    pk: 'id',
+    columns: {
+      id: 'id', name: 'name', email: 'email', subject: 'subject',
+      message: 'message', chapter: 'chapter', isRead: 'is_read', is_read: 'is_read',
+      createdAt: 'created_at', created_at: 'created_at'
+    },
+    snakeToCamel: {
+      id: 'id', name: 'name', email: 'email', subject: 'subject',
+      message: 'message', chapter: 'chapter', is_read: 'isRead',
+      created_at: 'createdAt'
+    }
+  },
+  rsvps: {
+    pk: 'id',
+    columns: {
+      id: 'id', eventId: 'event_id', event_id: 'event_id',
+      eventTitle: 'event_title', event_title: 'event_title',
+      fullName: 'full_name', full_name: 'full_name',
+      studentId: 'student_id', student_id: 'student_id',
+      email: 'email', createdAt: 'created_at', created_at: 'created_at'
+    },
+    snakeToCamel: {
+      id: 'id', event_id: 'eventId', event_title: 'eventTitle',
+      full_name: 'fullName', student_id: 'studentId',
+      email: 'email', created_at: 'createdAt'
     }
   }
 };
