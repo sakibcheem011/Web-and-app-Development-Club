@@ -1801,20 +1801,7 @@ export default function AdminDashboardView() {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
-                        <select
-                          required
-                          value={newExecutiveForm.cohort}
-                          onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, cohort: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer"
-                        >
-                          <option value="21-22">21-22</option>
-                          <option value="22-23">22-23</option>
-                          <option value="23-24">23-24</option>
-                          <option value="24-25">24-25</option>
-                        </select>
-                      </div>
+
 
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Profile Photo (Optional)</label>
