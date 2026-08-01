@@ -243,6 +243,12 @@ export default function AdminDashboardView() {
   const [memberCohortFilter, setMemberCohortFilter] = React.useState('ALL');
 
   const filteredMembers = members.filter(m => {
+    // Exclude administrators from the Student Profiles Registry
+    const allowedAdmins = ['cheemsakib@gmail.com', 'shakib@gstu.edu.bd', 'admin@gstu.edu.bd'];
+    if (allowedAdmins.includes(m.email.toLowerCase())) {
+      return false;
+    }
+
     const q = memberSearchQuery.toLowerCase().trim();
     if (q) {
       const name = `${m.firstName} ${m.lastName || ''}`.toLowerCase();
@@ -915,19 +921,12 @@ export default function AdminDashboardView() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Designation</label>
-                    <select
+                    <input
+                      type="text"
+                      disabled
                       value={inspectorEditForm.role}
-                      onChange={(e) => setInspectorEditForm({ ...inspectorEditForm, role: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-emerald-500 font-bold"
-                    >
-                      <option value="General Member" className="bg-white dark:bg-slate-800">General Member</option>
-                      <option value="Executive Committee" className="bg-white dark:bg-slate-800">Executive Committee</option>
-                      <option value="President" className="bg-white dark:bg-slate-800">President</option>
-                      <option value="Vice President" className="bg-white dark:bg-slate-800">Vice President</option>
-                      <option value="Secretary" className="bg-white dark:bg-slate-800">Secretary</option>
-                      <option value="General Secretary" className="bg-white dark:bg-slate-800">General Secretary</option>
-                      <option value="Chief Faculty Advisor & Head of Dept." className="bg-white dark:bg-slate-800">Chief Faculty Advisor & Head of Dept.</option>
-                    </select>
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-lg focus:outline-none font-bold cursor-not-allowed"
+                    />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
