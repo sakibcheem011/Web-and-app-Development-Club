@@ -336,9 +336,7 @@ export default function ProjectsView() {
           {/* Left panel */}
           <div className="lg:col-span-5 bg-gradient-to-br from-emerald-950 to-zinc-950 text-white p-6 sm:p-8 rounded-2xl flex flex-col justify-between shadow-md relative overflow-hidden">
             <div className="space-y-6 relative z-10">
-              <h2 className="text-2xl font-bold font-display tracking-tight leading-tight">
-                Empowering Student Developers.
-              </h2>
+
               <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed font-normal">
                 Whether it's a weekend side project or a final-year thesis research piece, we provide the platform to gain visibility, find collaborators, and receive technical feedback from peers and faculty.
               </p>
