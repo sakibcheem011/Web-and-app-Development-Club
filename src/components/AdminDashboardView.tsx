@@ -39,6 +39,7 @@ const getTodayDateString = () => {
 
 export default function AdminDashboardView() {
   const [activeTab, setActiveTab] = React.useState<'overview' | 'members' | 'announcements' | 'events' | 'projects' | 'inquiries' | 'achievements'>('overview');
+  const [showAdminProfile, setShowAdminProfile] = React.useState(false);
 
   const [members, setMembers] = React.useState<ClubMember[]>([]);
   const [notices, setNotices] = React.useState<Announcement[]>([]);
@@ -962,25 +963,20 @@ export default function AdminDashboardView() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Designation</label>
-                    <input
-                      type="text"
-                      disabled
-                      value={inspectorEditForm.role}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-lg focus:outline-none font-bold cursor-not-allowed"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
-                    <input 
-                      type="text" 
+                    <select
                       required
                       value={inspectorEditForm.activeCohort}
                       onChange={(e) => setInspectorEditForm({ ...inspectorEditForm, activeCohort: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-emerald-500 font-semibold"
-                    />
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer"
+                    >
+                      <option value="21-22">21-22</option>
+                      <option value="22-23">22-23</option>
+                      <option value="23-24">23-24</option>
+                      <option value="24-25">24-25</option>
+                    </select>
                   </div>
                 </div>
 
@@ -1146,6 +1142,16 @@ export default function AdminDashboardView() {
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               Oversee the club database, orchestrate workshop calendars, review projects, and post urgent syllabus alerts.
             </p>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setShowAdminProfile(true)}
+              className="px-4 py-2 bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition cursor-pointer flex items-center space-x-2"
+            >
+              <Shield className="w-4 h-4" />
+              <span>Admin Details</span>
+            </button>
           </div>
 
           {/* Quick tab pills */}
@@ -1405,14 +1411,17 @@ export default function AdminDashboardView() {
 
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
-                    <input 
-                      type="text" 
+                    <select
                       required
-                      placeholder="e.g. 21-22"
                       value={newMemberForm.cohort}
                       onChange={(e) => setNewMemberForm({ ...newMemberForm, cohort: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-semibold"
-                    />
+                      className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer"
+                    >
+                      <option value="21-22">21-22</option>
+                      <option value="22-23">22-23</option>
+                      <option value="23-24">23-24</option>
+                      <option value="24-25">24-25</option>
+                    </select>
                   </div>
 
                   <div>
@@ -1749,14 +1758,17 @@ export default function AdminDashboardView() {
 
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono pb-1">Academic Session</label>
-                        <input 
-                          type="text" 
+                        <select
                           required
-                          placeholder="e.g. 21-22"
                           value={newExecutiveForm.cohort}
                           onChange={(e) => setNewExecutiveForm({ ...newExecutiveForm, cohort: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold"
-                        />
+                          className="w-full px-3 py-2 border border-slate-205 dark:border-slate-700 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer"
+                        >
+                          <option value="21-22">21-22</option>
+                          <option value="22-23">22-23</option>
+                          <option value="23-24">23-24</option>
+                          <option value="24-25">24-25</option>
+                        </select>
                       </div>
 
                       <div>
